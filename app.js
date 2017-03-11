@@ -29,9 +29,7 @@ function load_sprite(code)  {
   {
     sprite_count--;
     if (sprite_count <= 0)
-    {
       startAnimating();
-    }
   }
   return sprite;
 }
@@ -58,7 +56,7 @@ function animate() {
   }
 }
 
-var enemies = [{px: 200, py: 300, vx: 0.05, vy: 0.05}];
+var enemies = [];
 var player = {px: 300, py: 400};
 var target = {px: 300, py: 300};
 
@@ -91,14 +89,14 @@ function drawEnemies () {
 }
 
 function drawPlayer() {
-  if (key.left && !key.right && (player.px - 0.2 * elapsed) > tile_size)
+  if (key.left && !key.right && (player.px - 0.2 * elapsed) > 0)
     player.px -= 0.2 * elapsed;
-  else if (key.right && (800 - (player.px + 0.1 * elapsed) > 2 * tile_size))
+  else if (key.right && (800 - (player.px + 0.1 * elapsed) > tile_size)) // && !key.left
     player.px += 0.2 * elapsed;
 
-  if (key.up && !key.down && (player.py - 0.2 * elapsed) > tile_size)
+  if (key.up && !key.down && (player.py - 0.2 * elapsed) > 0)
     player.py -= 0.2 * elapsed;
-  else if (key.down && (600 - (player.py + 0.1 * elapsed) > 2 * tile_size)) // && !key.up
+  else if (key.down && (600 - (player.py + 0.1 * elapsed) > tile_size)) // && !key.up
     player.py += 0.2 * elapsed;
 
   ctx.drawImage(player_sprite, player.px, player.py, tile_size, tile_size);
@@ -124,10 +122,7 @@ function drawTarget () {
 }
 
 function drawFore ()  {
-  // Draw Borders
-  ctx.fillStyle = "#AAAAAA";
-  ctx.fillRect(0,0, 800, 600);
-  ctx.clearRect(tile_size, tile_size, 800 - (2 * tile_size), 600 - (2 * tile_size));
+  ctx.clearRect(0, 0, 800, 600);
   drawEnemies();
   drawPlayer();
   drawTarget();
