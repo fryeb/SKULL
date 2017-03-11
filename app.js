@@ -76,6 +76,9 @@ function restart()  {
   ctx.fillRect(0, 0, 800, 600);
   ctx.globalAlpha = 1.0;
   ctx.drawImage(reload_sprite, 350, 250, 100, 100);
+  ctx.font = "100px Arial";
+  ctx.fillStyle = "#888";
+  ctx.fillText(score.toString(), 350, 100);
   canvas.onclick = function() {
     reset();
     start();
@@ -107,6 +110,9 @@ function pause() {
   ctx.fillRect(0, 0, 800, 600);
   ctx.globalAlpha = 1.0;
   ctx.drawImage(pause_sprite, 350, 250, 100, 100);
+  ctx.font = "100px Arial";
+  ctx.fillStyle = "#888";
+  ctx.fillText(score.toString(), 350, 100);
   canvas.onclick = start;
 }
 
@@ -123,6 +129,9 @@ function play() {
 
     // Draw Game
     ctx.clearRect(0, 0, 800, 600);
+    ctx.font = "30px Arial";
+    ctx.fillStyle = "#888";
+    ctx.fillText(score.toString(), 20, 50);
     drawPlayer();
     drawEnemies();
     drawTarget();
@@ -174,7 +183,6 @@ function drawTarget () {
   if (Math.abs(player.px - target.px) <= tile_size && Math.abs(player.py - target.py) <= tile_size) // Player has hit target
   {
     score += 1;
-    document.getElementById("score").innerHTML = score;
     target.px = Math.floor((Math.random() * 700) + 50);
     target.py = Math.floor((Math.random() * 500) + 50);
 
