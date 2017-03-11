@@ -173,10 +173,8 @@ function move() {
 			enemy.vy *= -1;
 
 		// Detect Player
-		if (Math.abs(enemy.px - player.px) <= tile_size && Math.abs(enemy.py - player.py) <= tile_size) {
+		if (Math.abs(enemy.px - player.px) <= tile_size && Math.abs(enemy.py - player.py) <= tile_size)
 			game_state = GameState.RESTART;
-			dd
-		}
 	});
 
 	// Target
