@@ -2,7 +2,6 @@ const tile_size = 20;
 var now, prev, fpsInterval, elapsed;
 var score = 0;
 var enemies, target, player;
-var sprite_count = 0;
 
 var key = {
 	left: false,
@@ -12,10 +11,10 @@ var key = {
 };
 
 var GameState = {
-	LAUNCH: { name: "Launch", icon: load_sprite('&#x25b6;') },
+	LAUNCH: { name: "Launch", icon: drawSymbol('&#x25b6;') },
 	PLAY: { name: "Play", icon: null },
-	PAUSED: { name: "Paused", icon: load_sprite('&#x23f8;') },
-	RESTART: { name: "Restart", icon: load_sprite('&#x1F504;') }
+	PAUSED: { name: "Paused", icon: drawSymbol('&#x23f8;') },
+	RESTART: { name: "Restart", icon: drawSymbol('&#x1F504;') }
 };
 
 var game_state = GameState.LAUNCH;
@@ -23,10 +22,15 @@ var game_state = GameState.LAUNCH;
 var canvas = document.getElementById('c');
 var ctx = c.getContext('2d');
 
-var enemy_sprite = load_sprite('&#x1f480;');
-var player_sprite = load_sprite('&#x1f603;');
-var target_sprite = load_sprite('&#x2b50;');
-var poop_sprite = load_sprite('&#x1f4a9;');
+var enemy_sprite = drawSymbol('&#x1f480;');
+var player_sprite = drawSymbol('&#x1f603;');
+var target_sprite = drawSymbol('&#x2b50;');
+var poop_sprite = drawSymbol('&#x1f4a9;');
+
+fpsInterval = 1000 / 60;
+prev = Date.now();
+reset();
+play();
 
 window.addEventListener('keydown', function(code) {
 	if (code.key == 'w' || code.key == 'ArrowUp') key.up = true;
@@ -62,9 +66,8 @@ canvas.addEventListener('click', function() {
 	}
 });
 
-function load_sprite(code) {
-	sprite_count++;
-	var sprite = new Image();
+function drawSymbol(code) {
+	var img = new Image();
 
 	var DOMURL = window.URL || window.webkitURL || window;
 	var data = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">' +
@@ -74,14 +77,8 @@ function load_sprite(code) {
            '</svg>';
 	var svg = new Blob([data], {type: 'image/svg+xml'});
 	var url = DOMURL.createObjectURL(svg);
-	sprite.onload = function() {
-		DOMURL.revokeObjectURL(url);
-		sprite_count--;
-		if (sprite_count <= 0)
-			start();
-	}
-	sprite.src = url;
-	return sprite;
+	img.src = url;
+	return img;
 }
 
 function reset() {
@@ -101,13 +98,6 @@ function reset() {
 		px: canvas.height,
 		py: 300
 	};
-}
-
-function start() {
-	fpsInterval = 1000 / 60;
-	prev = Date.now();
-	reset();
-	play();
 }
 
 function play() {
