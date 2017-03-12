@@ -12,10 +12,10 @@ var key = {
 };
 
 var GameState = {
-	LAUNCH: { name: "Launch", icon: load_sprite('25b6') },
+	LAUNCH: { name: "Launch", icon: load_sprite('&#x25b6;') },
 	PLAY: { name: "Play", icon: null },
-	PAUSED: { name: "Paused", icon: load_sprite('23f8') },
-	RESTART: { name: "Restart", icon: load_sprite('1f504') }
+	PAUSED: { name: "Paused", icon: load_sprite('&#x23f8;') },
+	RESTART: { name: "Restart", icon: load_sprite('&#x1F504;') }
 };
 
 var game_state = GameState.LAUNCH;
@@ -23,10 +23,10 @@ var game_state = GameState.LAUNCH;
 var canvas = document.getElementById('c');
 var ctx = c.getContext('2d');
 
-var enemy_sprite = load_sprite('1f480');
-var player_sprite = load_sprite('1f603');
-var target_sprite = load_sprite('2b50');
-var poop_sprite = load_sprite('1f4a9');
+var enemy_sprite = load_sprite('&#x1f480;');
+var player_sprite = load_sprite('&#x1f603;');
+var target_sprite = load_sprite('&#x2b50;');
+var poop_sprite = load_sprite('&#x1f4a9;');
 
 window.addEventListener('keydown', function(code) {
 	if (code.key == 'w' || code.key == 'ArrowUp') key.up = true;
@@ -65,12 +65,22 @@ canvas.addEventListener('click', function() {
 function load_sprite(code) {
 	sprite_count++;
 	var sprite = new Image();
-	sprite.src = 'http://emojione.com/wp-content/uploads/assets/emojis/' + code + '.svg';
+
+	var DOMURL = window.URL || window.webkitURL || window;
+	var data = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">' +
+           '<foreignObject width="100%" height="100%"> ' +
+					 code +
+           ' </foreignObject>' +
+           '</svg>';
+	var svg = new Blob([data], {type: 'image/svg+xml'});
+	var url = DOMURL.createObjectURL(svg);
 	sprite.onload = function() {
+		DOMURL.revokeObjectURL(url);
 		sprite_count--;
 		if (sprite_count <= 0)
 			start();
 	}
+	sprite.src = url;
 	return sprite;
 }
 
@@ -119,6 +129,11 @@ function play() {
 function draw() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+	// Score
+	ctx.font = "100px Arial";
+	ctx.fillStyle = "#888";
+	ctx.fillText(score.toString(), 350, 100);
+
 	// Player
 	var ps = (game_state != GameState.RESTART) ? player_sprite : poop_sprite;
 	ctx.drawImage(ps, player.px, player.py, tile_size, tile_size);
@@ -136,11 +151,6 @@ function draw() {
 		ctx.globalAlpha = 1.0;
 		ctx.drawImage(game_state.icon, 350, 250, 100, 100);
 	}
-
-	// Score
-	ctx.font = "100px Arial";
-	ctx.fillStyle = "#888";
-	ctx.fillText(score.toString(), 350, 100);
 }
 
 function move() {
