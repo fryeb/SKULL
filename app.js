@@ -14,7 +14,7 @@ var GameState = {
 	LAUNCH: { name: "Launch", icon: drawSymbol('&#x25b6;') },
 	PLAY: { name: "Play", icon: null },
 	PAUSED: { name: "Paused", icon: drawSymbol('&#x23f8;') },
-	RESTART: { name: "Restart", icon: drawSymbol('&#x1F504;') }
+	RESTART: { name: "Restart", icon: drawSymbol('&#x1F595;') } // ('&#x1F504;') }
 };
 
 var game_state = GameState.LAUNCH;
