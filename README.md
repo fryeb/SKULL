@@ -1,2 +1,2 @@
-# SKULL
-A HTML 5 re-creation of my first game.
+# Taurus
+A HTML5 adventure into a topological labyrinth
