@@ -143,33 +143,35 @@ function draw() {
 	}
 }
 
-function loop_clamp(a, b) {
-	if (a < 0) return a + b;
-	else if (a > b) return a - b;
-	else return a;
-}
-
 function move() {
-	// Player Input
-	if (key.left && !key.right)
+	// Player
+	if (key.left && !key.right && (player.px - 0.2 * elapsed) > 0)
 		player.px -= 0.2 * elapsed;
-	else if (key.right) // && !key.left
+	else if (key.right && (canvas.width - (player.px + 0.1 * elapsed) > tile_size)) // && !key.left
 		player.px += 0.2 * elapsed;
 
-	if (key.up && !key.down)
+	if (key.up && !key.down && (player.py - 0.2 * elapsed) > 0)
 		player.py -= 0.2 * elapsed;
-	else if (key.down) // && !key.up
+	else if (key.down && (canvas.height - (player.py + 0.1 * elapsed) > tile_size)) // && !key.up
 		player.py += 0.2 * elapsed;
-
-	player.px = loop_clamp(player.px, canvas.width);
-	player.py = loop_clamp(player.py, canvas.height);
 
 	// Enemies
 	enemies.forEach(function(enemy) {
 		// Move
-		enemy.px = loop_clamp(enemy.px + enemy.vx * elapsed, canvas.width);
-		enemy.py = loop_clamp(enemy.py + enemy.vy * elapsed, canvas.height);
-	
+		enemy.px += enemy.vx * elapsed;
+		enemy.py += enemy.vy * elapsed;
+
+		// Detect Walls
+		if (canvas.width - enemy.px <= 2 * tile_size)
+			enemy.vx *= -1;
+		else if (enemy.px <= tile_size)
+			enemy.vx *= -1;
+
+		if (canvas.height - enemy.py <= 2 * tile_size)
+			enemy.vy *= -1;
+		else if (enemy.py <= tile_size)
+			enemy.vy *= -1;
+
 		// Detect Player
 		if (Math.abs(enemy.px - player.px) <= tile_size && Math.abs(enemy.py - player.py) <= tile_size)
 			game_state = GameState.RESTART;
