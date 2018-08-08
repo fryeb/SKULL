@@ -1,6 +1,5 @@
-const tile_size = 20;
 let canvas = document.getElementById('c');
-canvas.width = width * tile_size;
+let tile_size = canvas.width / width;
 canvas.height = height * tile_size;
 let ctx = canvas.getContext('2d');
 
