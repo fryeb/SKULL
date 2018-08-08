@@ -1,42 +1,75 @@
-let canvas = document.getElementById('c');
-let tile_size = canvas.width / width;
-canvas.height = height * tile_size;
-let ctx = canvas.getContext('2d');
+const world_width = 40;
+const world_height = 30;
 
-let enemy_sprite = drawSymbol('&#x1f480;');
-let player_sprite = drawSymbol('&#x1f603;');
-let target_sprite = drawSymbol('&#x2b50;');
-let poop_sprite = drawSymbol('&#x1f4a9;');
+let ctx = null;
+let canvas = null;
+let enemy_sprite = null;
+let player_sprite = null;
+let target_sprite = null;
+let poop_sprite = null;
+let game_state_icon = null;
+let tile_size = 0;
 
-let game_state_icon = {
-	"Launch": drawSymbol('&#x25b6;'),
-	"Play": null,
-	"Paused": drawSymbol('&#x23f8;'),
-	"Restart" : drawSymbol('&#x1f504;')
+function fix_dpi() {
+		//get CSS height
+	//the + prefix casts it to an integer
+	//the slice method gets rid of "px"
+	canvas = document.getElementById('c');
+
+	let dpi = window.devicePixelRatio;
+	let style_height = +getComputedStyle(canvas).getPropertyValue("height").slice(0, -2);
+
+	//get CSS width
+	let style_width = +getComputedStyle(canvas).getPropertyValue("width").slice(0, -2);
+
+	//scale the canvas
+	canvas.setAttribute('width', style_width * dpi);
+	tile_size = Math.round((style_width * dpi) / world_width);
+	canvas.setAttribute('height', world_height * tile_size);
+
+	ctx = canvas.getContext('2d');
+
+	function drawSymbol(code) {
+		let img = new Image();
+		let DOMURL = window.URL || window.webkitURL || window;
+		let data = '<svg xmlns="http://www.w3.org/2000/svg"' +
+			' width="' + tile_size + '" height="' + tile_size  + '">' +
+           		'<foreignObject width="' + tile_size + '" height="' + tile_size + '"> ' +
+	   		code +
+           		' </foreignObject>' +
+           		'</svg>';
+		let svg = new Blob([data], {type: 'image/svg+xml'});
+		let url = DOMURL.createObjectURL(svg);
+		img.src = url;
+		return img;
+	}
+
+
+	enemy_sprite = drawSymbol('&#x1f480;');
+	player_sprite = drawSymbol('&#x1f603;');
+	target_sprite = drawSymbol('&#x2b50;');
+	poop_sprite = drawSymbol('&#x1f4a9;');
+
+	game_state_icon = {
+		"Launch": drawSymbol('&#x25b6;'),
+		"Play": null,
+		"Paused": drawSymbol('&#x23f8;'),
+		"Restart" : drawSymbol('&#x1f504;')
+	}
+
+
 }
 
-function drawSymbol(code) {
-	var img = new Image();
-
-	var DOMURL = window.URL || window.webkitURL || window;
-	var data = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">' +
-           '<foreignObject width="100%" height="100%"> ' +
-	   	code +
-           ' </foreignObject>' +
-           '</svg>';
-	var svg = new Blob([data], {type: 'image/svg+xml'});
-	var url = DOMURL.createObjectURL(svg);
-	img.src = url;
-	return img;
-}
+window.onresize = fix_dpi;
+fix_dpi();
 
 function drawSprite(sprite, x, y) {
 	ctx.drawImage(
 		sprite,
 		tile_size * x + 0.5 * tile_size,
 		tile_size * y + 0.5 * tile_size,
-		tile_size,
-		tile_size);
+		sprite.width,
+		sprite.height);
 }
 
 function draw() {
@@ -53,7 +86,8 @@ function draw() {
 		100);
 
 	// Player
-	var ps = (game_state != "Restart") ? player_sprite : poop_sprite;
+	let ps = (game_state != "Restart") ? player_sprite : poop_sprite;
+
 	drawSprite(ps, player.px, player.py);
 	// Target
 	drawSprite(target_sprite, target.px, target.py);

@@ -2,9 +2,6 @@ var now, prev, fpsInterval, elapsed;
 var score = 0;
 var enemies, target, player;
 
-let width = 40;
-let height = 30;
-
 var key = {
 	left: false,
 	up: false,
@@ -17,7 +14,7 @@ let game_state = "Launch";
 fpsInterval = 1000 / 60;
 prev = Date.now();
 reset();
-play();
+window.onready = play();
 
 window.addEventListener('keydown', function(code) {
 	if (code.key == 'w' || code.key == 'k' || code.key == 'ArrowUp')
@@ -125,9 +122,9 @@ function move() {
 	
 	let dt = elapsed / 1000; // Elapsed time in seconds
 	player.px += player.vx * dt;
-	player.px = clamp(player.px, 0, width - 1);
+	player.px = clamp(player.px, 0, world_width - 1);
 	player.py += player.vy * dt;
-	player.py = clamp(player.py, 0, height - 1);
+	player.py = clamp(player.py, 0, world_height - 1);
 
 	// Enemies
 	enemies.forEach(function(enemy) {
@@ -136,12 +133,12 @@ function move() {
 		enemy.py += enemy.vy * dt;
 
 		// Detect Walls
-		if (width - enemy.px <= 2)
+		if (world_width - enemy.px <= 2)
 			enemy.vx *= -1;
 		else if (enemy.px <= 0)
 			enemy.vx *= -1;
 
-		if (height - enemy.py <= 1)
+		if (world_height - enemy.py <= 1)
 			enemy.vy *= -1;
 		else if (enemy.py <= 1)
 			enemy.vy *= -1;
