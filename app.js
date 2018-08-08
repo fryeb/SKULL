@@ -67,7 +67,7 @@ function reset() {
 	enemies = [{
 		px: 20,
 		py: 15,
-		vx: -10,
+		vx: -20,
 		vy: 0
 	}];
 	player = {
@@ -85,17 +85,17 @@ function reset() {
 function play() {
 	requestID = requestAnimationFrame(play);
 	now = Date.now();
-	elapsed = now - prev;
+	elapsed = now - prev; // Time between frames (in milliseconds)
 
 	if (elapsed > fpsInterval) {
 		// Prepare for next frame and adjust for fps interval not being a multiple of the browsers interval;
-		prev = now - (elapsed % fpsInterval);
 
 		if (game_state == "Play")
 			move();
 
 		draw();
 	}
+	prev = now;
 }
 
 function clamp(x, min, max) {
@@ -110,20 +110,20 @@ function clamp(x, min, max) {
 function move() {
 	// Player
 	if (key.left && !key.right)
-		player.vx = -20;
+		player.vx = -40;
 	else if (key.right) // && !key.left
-		player.vx = 20;
+		player.vx = 40;
 	else
 		player.vx = 0;
 
 	if (key.up && !key.down)
-		player.vy = -20;
+		player.vy = -40;
 	else if (key.down) // && !key.up
-		player.vy = 20;
+		player.vy = 40;
 	else
 	 	player.vy = 0;
 	
-	let dt = elapsed / 1000;
+	let dt = elapsed / 1000; // Elapsed time in seconds
 	player.px += player.vx * dt;
 	player.px = clamp(player.px, 0, width - 1);
 	player.py += player.vy * dt;
