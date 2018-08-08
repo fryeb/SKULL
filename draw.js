@@ -45,7 +45,12 @@ function draw() {
 	// Score
 	ctx.font = "100px Arial";
 	ctx.fillStyle = "#888";
-	ctx.fillText(score.toString(), 350, 100);
+	let score_string = score.toString();
+	let dims = ctx.measureText(score_string);
+	ctx.fillText(
+		score_string,
+		canvas.width/2 - dims.width/2,
+		100);
 
 	// Player
 	var ps = (game_state != "Restart") ? player_sprite : poop_sprite;
@@ -62,7 +67,15 @@ function draw() {
 		ctx.globalAlpha = 0.5;
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
 		ctx.globalAlpha = 1.0;
-		ctx.drawImage(game_state_icon[game_state], 350, 250, 100, 100);
+		let icon = game_state_icon[game_state];
+		let icon_width = icon.width * 5;
+		let icon_height = icon.height * 5;
+		ctx.drawImage(
+			icon,
+			canvas.width/2 - icon_width/2,
+			canvas.height/2 - icon_height/2,
+			icon_width,
+			icon_height);
 	}
 }
 
