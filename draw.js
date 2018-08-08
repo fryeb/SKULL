@@ -66,7 +66,8 @@ function drawSprite(sprite, x, y) {
 }
 
 function draw() {
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	ctx.fillStyle = '#44444488';
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 	// Score
 	ctx.font = "100px Arial";

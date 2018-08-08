@@ -75,6 +75,8 @@ function reset() {
 		x: 30,
 		y: 15
 	};
+
+	initializeGraphics(); // Clear any residual visual artifacts
 }
 reset();
 
