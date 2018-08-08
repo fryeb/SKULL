@@ -27,7 +27,7 @@ h1 {
 	display:block;
 	padding-left: 0;
 	padding-right: 0;
-	border: 20px solid #fff;
+	border: 2vw solid #fff;
 	width: 85vw;
 	max-width: 800px;
 	margin-left: auto;
@@ -45,7 +45,7 @@ section {
 	margin-bottom: 2vh;
 	max-width: 800px;
 	width: 85vw;
-	border: 20px solid #fff;
+	border: 2vw solid #fff;
 	background-color: #fff;
     	box-shadow: 0 3px 6px rgba(0,0,0,0.08), 0 3px 6px rgba(0,0,0,0.15);
 }

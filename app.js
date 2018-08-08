@@ -1,6 +1,12 @@
-var now, prev, fpsInterval, elapsed;
+// Constants
+const enemy_speed = 10;
+const player_speed = 20;
+
+// Globals
 var score = 0;
 var enemies, target, player;
+
+let game_state = "Launch";
 
 var key = {
 	left: false,
@@ -9,23 +15,17 @@ var key = {
 	down: false
 };
 
-let game_state = "Launch";
-
-fpsInterval = 1000 / 60;
-prev = Date.now();
-reset();
-window.onready = play();
-
+// Input handling
 window.addEventListener('keydown', function(code) {
 	if (code.key == 'w' || code.key == 'k' || code.key == 'ArrowUp')
 		key.up = true;
-	else if (code.key == 'a' || code.key == 'h' || code.key == 'ArrowLeft')
+	if (code.key == 'a' || code.key == 'h' || code.key == 'ArrowLeft')
 		key.left = true;
-	else if (code.key == 's' || code.key == 'j' || code.key == 'ArrowDown')
+	if (code.key == 's' || code.key == 'j' || code.key == 'ArrowDown')
 		key.down = true;
-	else if (code.key == 'd' || code.key == 'l' || code.key == 'ArrowRight')
+	if (code.key == 'd' || code.key == 'l' || code.key == 'ArrowRight')
 		key.right = true;
-	else if (code.key == "Escape") {
+	if (code.key == "Escape") {
 		if (game_state == "Paused")
 			game_state = "Play";
 		else if (game_state == "Play")
@@ -34,13 +34,13 @@ window.addEventListener('keydown', function(code) {
 });
 
 window.addEventListener('keyup', function(code) {
-	if (code.key == 'w' || code.key == 'k' || code.key == 'ArrowUp')
+	if (code.key === 'w' || code.key === 'k' || code.key === 'ArrowUp')
 		key.up = false;
-	else if (code.key == 'a' || code.key == 'h' || code.key == 'ArrowLeft')
+	if (code.key === 'a' || code.key === 'h' || code.key === 'ArrowLeft')
 		key.left = false;
-	else if (code.key == 's' || code.key ==  'j' || code.key == 'ArrowDown')
+	if (code.key === 's' || code.key ===  'j' || code.key === 'ArrowDown')
 		key.down = false;
-	else if (code.key == 'd' || code.key ==  'l' || code.key =='ArrowRight')
+	if (code.key === 'd' || code.key ===  'l' || code.key ==='ArrowRight')
 		key.right = false;
 });
 
@@ -48,9 +48,9 @@ document.getElementById('c').addEventListener('click', function() {
 	if (game_state == "Launch") {
 		game_state = "Play";
 		reset();
-	} else if (game_state == "Play")
+	} else if (game_state == "Play") {
 		game_state = "Paused";
-	else if (game_state == "Paused") {
+	} else if (game_state == "Paused") {
 		game_state = "Play";
 	} else { // game_state == "Restart"
 		game_state = "Play";
@@ -62,109 +62,107 @@ function reset() {
 	score = 0;
 
 	enemies = [{
-		px: 20,
-		py: 15,
-		vx: -20,
+		x: 20,
+		y: 15,
+		vx: -enemy_speed,
 		vy: 0
 	}];
 	player = {
-		px: 10,
-		py: 15,
-		vx: 0,
-		vy: 0,
+		x: 10,
+		y: 15
 	};
 	target = {
-		px: 30,
-		py: 15
+		x: 30,
+		y: 15
 	};
 }
+reset();
 
-function play() {
-	requestID = requestAnimationFrame(play);
-	now = Date.now();
-	elapsed = now - prev; // Time between frames (in milliseconds)
-
-	if (elapsed > fpsInterval) {
-		// Prepare for next frame and adjust for fps interval not being a multiple of the browsers interval;
-
-		if (game_state == "Play")
-			move();
-
-		draw();
+// Compute next frame
+function update(dt) {
+	// Helper functions
+	function did_hit(a, b) {
+		let xd = (a.x-b.x);
+		let yd = (a.y-b.y);
+		return (xd*xd + yd*yd) < 1;
 	}
-	prev = now;
-}
 
-function clamp(x, min, max) {
-	if (x < min)
-		return min;
-	else if (x > max)
-		return max;
-	else
-		return x;
-}
+	function clamp(x, min, max) {
+		if (x < min)      return min;
+		else if (x > max) return max;
+		else              return x;
+	}
 
-function move() {
-	// Player
-	if (key.left && !key.right)
-		player.vx = -40;
-	else if (key.right) // && !key.left
-		player.vx = 40;
-	else
-		player.vx = 0;
+	{ // Update Player
+		let dx = 0;
+		let dy = 0;
+		if (key.left)
+			dx -= dt;
+		if (key.right)
+			dx += dt;
+		if (key.up)
+			dy -= dt;
+		if (key.down)
+			dy += dt;
 
-	if (key.up && !key.down)
-		player.vy = -40;
-	else if (key.down) // && !key.up
-		player.vy = 40;
-	else
-	 	player.vy = 0;
-	
-	let dt = elapsed / 1000; // Elapsed time in seconds
-	player.px += player.vx * dt;
-	player.px = clamp(player.px, 0, world_width - 1);
-	player.py += player.vy * dt;
-	player.py = clamp(player.py, 0, world_height - 1);
+		player.x = clamp(dx * player_speed + player.x, 0, world_width - 1);
+		player.y = clamp(dy * player_speed + player.y, 0, world_height - 1);
+	}
 
-	// Enemies
-	enemies.forEach(function(enemy) {
+
+	// Update Enemies
+	enemies.forEach(function(it) {
 		// Move
-		enemy.px += enemy.vx * dt;
-		enemy.py += enemy.vy * dt;
+		it.x += it.vx * dt;
+		it.y += it.vy * dt;
 
 		// Detect Walls
-		if (world_width - enemy.px <= 2)
-			enemy.vx *= -1;
-		else if (enemy.px <= 0)
-			enemy.vx *= -1;
-
-		if (world_height - enemy.py <= 1)
-			enemy.vy *= -1;
-		else if (enemy.py <= 1)
-			enemy.vy *= -1;
+		if (world_width - it.x <= 2 || it.x <= 0)
+			it.vx *= -1;
+		if (world_height - it.y <= 1 || it.y <= 0)
+			it.vy *= -1;
 
 		// Detect Player
-		if (Math.abs(enemy.px - player.px) <= 1 && Math.abs(enemy.py - player.py) <= 1)
+		if (did_hit(player, it))
 			game_state = "Restart";
 	});
 
 	// Target
-	if (Math.abs(player.px - target.px) <= 1 && Math.abs(player.py - target.py) <= 1) // Player has hit target
-	{
+	if (did_hit(player, target)) {
 		// Increment Score
 		score += 1;
 
 		// Move Target
-		target.px = Math.floor((Math.random() * 30) + 2.5);
-		target.py = Math.floor((Math.random() * 25) + 2.5);
+		target.x = Math.floor((Math.random() * 30) + 2.5);
+		target.y = Math.floor((Math.random() * 25) + 2.5);
 
 		// Spawn a new Enemy
 		var enemy = {};
-		enemy.px = Math.floor((Math.random() * 30) + 2.5);
-		enemy.py = Math.floor((Math.random() * 25) + 2.5);
-		enemy.vx = (Math.random() < 0.5) ? 10 : -10;
-		enemy.vy = (Math.random() < 0.5) ? 10 : -10;
+		enemy.x = Math.floor((Math.random() * 30) + 2.5);
+		enemy.y = Math.floor((Math.random() * 25) + 2.5);
+		// Velocity should have random direction, but constant magnitude
+		let vx = Math.random();
+		let vy = Math.random();
+		let v = Math.sqrt(vx*vx + vy*vy);
+		enemy.vx = vx/v * enemy_speed;
+		enemy.vy = vy/v * enemy_speed;
 
 		enemies.push(enemy);
 	}
 }
+
+// Main game loop
+let prev = Date.now();
+function play() {
+	requestID = requestAnimationFrame(play);
+	let now = Date.now();
+	elapsed = now - prev; // Time between frames (in milliseconds)
+	let dt = elapsed / 1000; // Elapsed time in seconds
+
+	if (game_state == "Play")
+		update(dt);
+
+	draw();
+	prev = now;
+}
+window.onready = play();

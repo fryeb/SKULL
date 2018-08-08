@@ -1,6 +1,7 @@
 const world_width = 40;
 const world_height = 30;
 
+// Globals
 let ctx = null;
 let canvas = null;
 let enemy_sprite = null;
@@ -10,26 +11,22 @@ let poop_sprite = null;
 let game_state_icon = null;
 let tile_size = 0;
 
-function fix_dpi() {
-		//get CSS height
-	//the + prefix casts it to an integer
-	//the slice method gets rid of "px"
+function initializeGraphics() {
 	canvas = document.getElementById('c');
-
 	let dpi = window.devicePixelRatio;
-	let style_height = +getComputedStyle(canvas).getPropertyValue("height").slice(0, -2);
 
-	//get CSS width
+	// Get CSS Dimensions
+	let style_height = +getComputedStyle(canvas).getPropertyValue("height").slice(0, -2);
 	let style_width = +getComputedStyle(canvas).getPropertyValue("width").slice(0, -2);
 
-	//scale the canvas
+	// Scale the canvas
 	canvas.setAttribute('width', style_width * dpi);
 	tile_size = Math.round((style_width * dpi) / world_width);
 	canvas.setAttribute('height', world_height * tile_size);
 
 	ctx = canvas.getContext('2d');
 
-	function drawSymbol(code) {
+	function loadSymbol(code) {
 		let img = new Image();
 		let DOMURL = window.URL || window.webkitURL || window;
 		let data = '<svg xmlns="http://www.w3.org/2000/svg"' +
@@ -44,30 +41,26 @@ function fix_dpi() {
 		return img;
 	}
 
-
-	enemy_sprite = drawSymbol('&#x1f480;');
-	player_sprite = drawSymbol('&#x1f603;');
-	target_sprite = drawSymbol('&#x2b50;');
-	poop_sprite = drawSymbol('&#x1f4a9;');
-
+	// Load Sprites & Icons
+	enemy_sprite = loadSymbol('&#x1f480;');
+	player_sprite = loadSymbol('&#x1f603;');
+	target_sprite = loadSymbol('&#x2b50;');
+	poop_sprite = loadSymbol('&#x1f4a9;');
 	game_state_icon = {
-		"Launch": drawSymbol('&#x25b6;'),
-		"Play": null,
-		"Paused": drawSymbol('&#x23f8;'),
-		"Restart" : drawSymbol('&#x1f504;')
+		"Launch": loadSymbol('&#x25b6;'),
+		// "Play": null,
+		"Paused": loadSymbol('&#x23f8;'),
+		"Restart" : loadSymbol('&#x1f504;')
 	}
-
-
 }
-
-window.onresize = fix_dpi;
-fix_dpi();
+window.onresize = initializeGraphics;
+initializeGraphics();
 
 function drawSprite(sprite, x, y) {
 	ctx.drawImage(
 		sprite,
-		tile_size * x + 0.5 * tile_size,
-		tile_size * y + 0.5 * tile_size,
+		tile_size * x + 0.5 * sprite.width,
+		tile_size * y + 0.5 * sprite.height,
 		sprite.width,
 		sprite.height);
 }
@@ -79,21 +72,22 @@ function draw() {
 	ctx.font = "100px Arial";
 	ctx.fillStyle = "#888";
 	let score_string = score.toString();
-	let dims = ctx.measureText(score_string);
+	let score_width = ctx.measureText(score_string).width;
 	ctx.fillText(
 		score_string,
-		canvas.width/2 - dims.width/2,
+		canvas.width/2 - score_width/2,
 		100);
 
 	// Player
 	let ps = (game_state != "Restart") ? player_sprite : poop_sprite;
+	drawSprite(ps, player.x, player.y);
 
-	drawSprite(ps, player.px, player.py);
 	// Target
-	drawSprite(target_sprite, target.px, target.py);
+	drawSprite(target_sprite, target.x, target.y);
+
 	// Enemies
 	enemies.forEach(function(enemy) {
-		drawSprite(enemy_sprite, enemy.px, enemy.py);
+		drawSprite(enemy_sprite, enemy.x, enemy.y);
 	});
 
 	if (game_state != "Play") {
@@ -112,4 +106,3 @@ function draw() {
 			icon_height);
 	}
 }
-
