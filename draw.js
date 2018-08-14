@@ -30,8 +30,8 @@ function initializeGraphics() {
 		let img = new Image();
 		let DOMURL = window.URL || window.webkitURL || window;
 		let data = '<svg xmlns="http://www.w3.org/2000/svg"' +
-			' width="' + tile_size + '" height="' + tile_size  + '">' +
-           		'<foreignObject width="' + tile_size + '" height="' + tile_size + '"> ' +
+			' width="20" height="20">' +
+           		'<foreignObject font-size="15" width="20" height="20"> ' +
 	   		code +
            		' </foreignObject>' +
            		'</svg>';
