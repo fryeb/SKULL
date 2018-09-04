@@ -67,6 +67,11 @@ function clickSpace () {
 
 document.getElementById('c').addEventListener('click',clickSpace);
 
+document.querySelectorAll('input[name="renderer"]').forEach(it => {
+	it.onclick = initializeGraphics;
+	return it;
+});
+
 function reset() {
 	score = 0;
 
@@ -85,14 +90,6 @@ function reset() {
 		y: 15
 	};
 }
-
-document.querySelectorAll('input[name="renderer"]').forEach(it => {
-	it.onclick = () => {
-		initializeGraphics();
-		document.getElementById('c').addEventListener('click',clickSpace);
-	}
-	return it;
-});
 
 reset();
 

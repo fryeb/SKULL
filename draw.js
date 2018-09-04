@@ -10,6 +10,7 @@ function initializeGraphics() {
 	let new_canvas = canvas.cloneNode(false);
 	canvas.parentNode.replaceChild(new_canvas, canvas);
 	canvas = new_canvas;
+	canvas.addEventListener('click', clickSpace); // Keep responding to click
 
 	let dpi = window.devicePixelRatio;
 
