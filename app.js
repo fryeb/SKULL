@@ -31,6 +31,9 @@ window.addEventListener('keydown', function(code) {
 		else if (game_state == "Play")
 			game_state = "Paused";
 	}
+	if (code.key == "Space") {
+		clickSpace();
+	}
 });
 
 window.addEventListener('keyup', function(code) {
@@ -44,7 +47,11 @@ window.addEventListener('keyup', function(code) {
 		key.right = false;
 });
 
-document.getElementById('c').addEventListener('click', function() {
+window.onresize = initializeGraphics;
+initializeGraphics();
+
+// What happens when the player clicks the canvas or presses space
+function clickSpace () {
 	if (game_state == "Launch") {
 		game_state = "Play";
 		reset();
@@ -56,7 +63,9 @@ document.getElementById('c').addEventListener('click', function() {
 		game_state = "Play";
 		reset();
 	}
-});
+}
+
+document.getElementById('c').addEventListener('click',clickSpace);
 
 function reset() {
 	score = 0;
@@ -75,9 +84,16 @@ function reset() {
 		x: 30,
 		y: 15
 	};
-
-	initializeGraphics(); // Clear any residual visual artifacts
 }
+
+document.querySelectorAll('input[name="renderer"]').forEach(it => {
+	it.onclick = () => {
+		initializeGraphics();
+		document.getElementById('c').addEventListener('click',clickSpace);
+	}
+	return it;
+});
+
 reset();
 
 // Compute next frame

@@ -13,6 +13,16 @@
 		<canvas id="c">
 		</canvas>
 
+		<section id="options">
+			<h2>Renderer</h2>
+			<input type="radio" name="renderer" value="gl" onclick="alert('hello world');">
+				WebGL
+			</input>
+			<input type="radio" name="renderer" value="2d" checked>
+				Canvas
+			</input>
+		</section>
+	
 		<section id="controls">
 			<h2>How to Play</h2>
                         <ul>
@@ -44,13 +54,10 @@
 			</p>
 		</section>
 
-		<section id="options">
-			<h2>Renderer</h2>
-			<input type="radio" name="renderer" value="gl">WebGL</input>
-			<input type="radio" name="renderer" value="2d" checked>Canvas</input>
-		</section>
-	
+
 		<script src="draw.js"></script>
+		<script src="draw_canvas.js"></script>
+		<script src="draw_gl.js"></script>
 		<script src="app.js"></script>
 </body>
 </html>
