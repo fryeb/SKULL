@@ -37,17 +37,16 @@ function initializeGL() {
 
 	// Shader Program
   	const vsSource = `
-    		attribute vec2 aVertexPosition;
-    		attribute vec2 aTextureCoord;
+    		attribute vec4 vertex_xyuv;
 
     		varying highp vec2 vTextureCoord;
 
     		void main(void) {
 			vec4 position = vec4(0, 0, 0, 1);
-			position.x = aVertexPosition.x / ` + world_width/2 + `.0 - 1.0;
-			position.y = -aVertexPosition.y / ` + world_height/2 + `.0 + 1.0;
+			position.x = vertex_xyuv.x / ` + world_width/2 + `.0 - 1.0;
+			position.y = -vertex_xyuv.y / ` + world_height/2 + `.0 + 1.0;
       			gl_Position = position;
-      			vTextureCoord = aTextureCoord;
+      			vTextureCoord = vertex_xyuv.zw;
     		}
   	`;
 
@@ -57,7 +56,7 @@ function initializeGL() {
     		uniform sampler2D uSampler;
 
     		void main(void) {
-			gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+			gl_FragColor = vec4(0.0, vTextureCoord.x, vTextureCoord.y, 1.0);
     		}
   	`;
 
@@ -65,8 +64,7 @@ function initializeGL() {
   	programInfo = {
 		program: shaderProgram,
     	 	 attribLocations: {
-			vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
-      			textureCoord: gl.getAttribLocation(shaderProgram, 'aTextureCoord'),
+			vertexPosition: gl.getAttribLocation(shaderProgram, 'vertex_xyuv'),
     	 	 },
 		uniformLocations: {
 		projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
@@ -136,7 +134,7 @@ function drawGL() {
 
   	// Vertex attributes
   	{
-    		const numComponents = 2;
+    		const numComponents = 4;
     		const type = gl.FLOAT;
     		const normalize = false;
     		const stride = 0;
@@ -163,10 +161,10 @@ function drawGL() {
 	function pushSprite(x, y) {
 		numSprites++;
 		positions.push(
-			x      , y, 
-			x      , y + 1.0,
-			x + 1.0, y + 1.0,
-			x + 1.0, y);
+			x      , y      , 0, 0,
+			x      , y + 1.0, 0, 1,
+			x + 1.0, y + 1.0, 1, 1,
+			x + 1.0, y      , 1, 0);
 	}
 	pushSprite(player.x, player.y);
 	enemies.forEach(enemy => {
