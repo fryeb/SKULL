@@ -26,10 +26,7 @@ window.addEventListener('keydown', function(code) {
 	if (code.key == 'd' || code.key == 'l' || code.key == 'ArrowRight')
 		key.right = true;
 	if (code.key == "Escape") {
-		if (game_state == "Paused")
-			game_state = "Play";
-		else if (game_state == "Play")
-			game_state = "Paused";
+		clickEscape();
 	}
 	if (code.key == "Space") {
 		clickSpace();
@@ -51,7 +48,7 @@ window.onresize = initializeGraphics;
 initializeGraphics();
 
 // What happens when the player clicks the canvas or presses space
-function clickSpace () {
+function clickEscape () {
 	if (game_state == "Launch") {
 		game_state = "Play";
 		reset();
@@ -65,7 +62,7 @@ function clickSpace () {
 	}
 }
 
-document.getElementById('c').addEventListener('click',clickSpace);
+document.getElementById('c').addEventListener('click', clickEscape);
 
 document.querySelectorAll('input[name="renderer"]').forEach(it => {
 	it.onclick = initializeGraphics;
