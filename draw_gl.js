@@ -1,8 +1,10 @@
 let gl = null;
 const MAX_SPRITES = 128;
+const NUM_INDICIES = MAX_SPRITES * 6;
 const VERTEX_SIZE = 4 * 4; // 4 * f32
 const BUFFER_SIZE = MAX_SPRITES * 6 * VERTEX_SIZE; 
 let vertex_buffer = undefined;
+let index_buffer = undefined;
 let texture = undefined;
 let programInfo = undefined;
 
@@ -13,9 +15,27 @@ function initializeGL() {
 //	vertex_array = gl.createVertexArray();
 	vertex_buffer = gl.createBuffer();
 //	gl.bindVertexArray(vertex_array);
-//	gl.bindBuffer(gl.ARRAY_BUFFER, vertex_array);
+//	gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
 
-	// TODO: Index Buffer
+	// Generate Index Buffer
+	let indicies = [];
+	let offset = 0;
+	for (let i = 0; i < NUM_INDICIES; i++) {
+		indicies.push(offset + 0);
+		indicies.push(offset + 1);
+		indicies.push(offset + 2);
+
+		indicies.push(offset + 2);
+		indicies.push(offset + 3);
+		indicies.push(offset + 0);
+
+		offset += 4;
+	}
+	console.log(indicies);
+	index_buffer = gl.createBuffer();
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index_buffer);
+	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indicies), gl.STATIC_DRAW);
+
 	// Shader Program
   	const vsSource = `
     		attribute vec2 aVertexPosition;
@@ -136,21 +156,12 @@ function drawGL() {
    	const modelViewMatrix = mat4.create();
   	mat4.translate(modelViewMatrix,
                  	modelViewMatrix,
-                 	[-0.0, 0.0, -6.0]);
-  	mat4.rotate(modelViewMatrix,
-              		modelViewMatrix,
-              		0,
-              		[0, 0, 1]);
-  	mat4.rotate(modelViewMatrix,
-              		modelViewMatrix,
-              		0,
-              		[0, 1, 0]);
-
+                 	[5.0, 5.0, -6.0]);
  	
 	let data = new Float32Array([
     		// Front face
-    		-1.0, -1.0,  1.0,	1.0, -1.0,  1.0,
-     		1.0,  1.0,  1.0,	-1.0,  1.0,  1.0,
+    		-1.0, -1.0,	-1.0,  1.0,
+     		1.0,  1.0,  	 1.0,  -1.0,
 	]);
 	gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
 	gl.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW);
@@ -165,5 +176,6 @@ function drawGL() {
       			false,
       			modelViewMatrix);
 
-	gl.drawArrays(gl.TRIANGLES, 0, 6);
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index_buffer);
+	gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
 }
