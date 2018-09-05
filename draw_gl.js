@@ -2,52 +2,23 @@ let gl = null;
 const MAX_SPRITES = 128;
 const VERTEX_SIZE = 4 * 4; // 4 * f32
 const BUFFER_SIZE = MAX_SPRITES * 6 * VERTEX_SIZE; 
-let buffers = undefined;
+let vertex_buffer = undefined;
 let texture = undefined;
 let programInfo = undefined;
 
-/*
 function initializeGL() {
-	gl = canvas.getContext('webgl');
+	gl = WebGLDebugUtils.makeDebugContext(canvas.getContext('webgl'));
 
 	// Generate VBO and VAO
-	vertex_array = gl.createVertexArray();
+//	vertex_array = gl.createVertexArray();
 	vertex_buffer = gl.createBuffer();
-	gl.bindVertexArray(vertex_array);
-	gl.bindBuffer(gl.ARRAY_BUFFER, vertex_array);
-
-	gl.bufferData(gl.ARRAY_BUFFER, BUFFER_SIZE, NULL, gl.DYNAMIC_DRAW);
-
-	gl.enableVertexAttribArray(0); // Position
-	gl.vertexAttribPointer(0, 2, gl.FLOAT, gl.FALSE, VERTEX_SIZE, 0);
-	gl.enableVertexAttribArray(1); // UV
-	gl.vertexAttribPointer(1, 2, gl.FLOAT, gl.FALSE, VERTEX_SIZE, 2);
+//	gl.bindVertexArray(vertex_array);
+//	gl.bindBuffer(gl.ARRAY_BUFFER, vertex_array);
 
 	// TODO: Index Buffer
-}
-
-function drawGL() {
-	// Clear screen
-  	gl.clearColor(0.0, 0.0, 1.0, 1.0);
-  	gl.clearDepth(1.0);
-  	gl.enable(gl.DEPTH_TEST);
-  	gl.depthFunc(gl.LEQUAL);
-  	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-}
-*/
-
-function initializeGL() {
-  	gl = canvas.getContext('webgl');
-
-  	if (!gl) {
-    		alert('Unable to initialize WebGL');
-    		return;
-  	}
-
 	// Shader Program
   	const vsSource = `
-    		attribute vec4 aVertexPosition;
+    		attribute vec2 aVertexPosition;
     		attribute vec2 aTextureCoord;
 
     		uniform mat4 uModelViewMatrix;
@@ -56,7 +27,8 @@ function initializeGL() {
     		varying highp vec2 vTextureCoord;
 
     		void main(void) {
-      			gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+			vec4 position = vec4(aVertexPosition.x, aVertexPosition.y, 0, 1);
+      			gl_Position = uProjectionMatrix * uModelViewMatrix * position;
       			vTextureCoord = aTextureCoord;
     		}
   	`;
@@ -67,11 +39,11 @@ function initializeGL() {
     		uniform sampler2D uSampler;
 
     		void main(void) {
-      			gl_FragColor = texture2D(uSampler, vTextureCoord);
+			gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
     		}
   	`;
 
-  	const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+  	const shaderProgram = initShaderProgram(vsSource, fsSource);
   	programInfo = {
 		program: shaderProgram,
     	 	 attribLocations: {
@@ -85,249 +57,10 @@ function initializeGL() {
       		  	  uSampler: gl.getUniformLocation(shaderProgram, 'uSampler'),
 		},
   	};
-
-	// Buffers
-  	buffers = initBuffers(gl);
-
-	function loadSymbol(gl, symbol) {
-  		const texture = gl.createTexture();
-  		gl.bindTexture(gl.TEXTURE_2D, texture);
-
-  		// Create temporary texture, while svg texture loads
-  		const level = 0;
-  		const internalFormat = gl.RGBA;
-  		const width = 1;
-  		const height = 1;
-  		const border = 0;
-  		const srcFormat = gl.RGBA;
-  		const srcType = gl.UNSIGNED_BYTE;
-  		const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
-  		gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-                		width, height, border, srcFormat, srcType,
-                		pixel);
-
-  		const img = new Image();
-  		img.onload = function() {
-    			gl.bindTexture(gl.TEXTURE_2D, texture);
-    			gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-                  			srcFormat, srcType, img);
-
-    			// WebGL1 has different requirements for power of 2 images
-    			// vs non power of 2 images so check if the image is a
-    			// power of 2 in both dimensions.
-    			if (isPowerOf2(img.width) && isPowerOf2(img.height)) {
-       				// Yes, it's a power of 2. Generate mips.
-       				gl.generateMipmap(gl.TEXTURE_2D);
-    			} else {
-       				// No, it's not a power of 2. Turn of mips and set
-       				// wrapping to clamp to edge
-       				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-       				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-       				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    			}
-  		};
-
-		let DOMURL = window.URL || window.webkitURL || window;
-		let data = '<svg xmlns="http://www.w3.org/2000/svg"' +
-			' width="200" height="200">' +
-           		'<foreignObject font-size="150" width="200" height="200">' +
-	   		symbol +
-           		' </foreignObject>' +
-           		'</svg>';
-		let svg = new Blob([data], {type: 'image/svg+xml'});
-		let url = DOMURL.createObjectURL(svg);
-		img.src = url;
-
-  		return texture;
-	}
-
-  	texture = loadSymbol(gl, "&#x1f603;");
 }
 
-function initBuffers(gl) {
-  	// Position Buffer
-  	const positionBuffer = gl.createBuffer();
-  	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
-  	const positions = [
-    		// Front face
-    		-1.0, -1.0,  1.0,	1.0, -1.0,  1.0,
-     		1.0,  1.0,  1.0,	-1.0,  1.0,  1.0,
-
-    		// Back face
-    		-1.0, -1.0, -1.0,	-1.0,  1.0, -1.0,
-     		1.0,  1.0, -1.0,	1.0, -1.0, -1.0,
-
-    		// Top face
-    		-1.0,  1.0, -1.0,	-1.0,  1.0,  1.0,
-     		1.0,  1.0,  1.0,	1.0,  1.0, -1.0,
-
-    		// Bottom face
-    		-1.0, -1.0, -1.0,	1.0, -1.0, -1.0,
-     		1.0, -1.0,  1.0,	-1.0, -1.0,  1.0,
-
-    		// Right face
-     		1.0, -1.0, -1.0,	1.0,  1.0, -1.0,
-     		1.0,  1.0,  1.0,	1.0, -1.0,  1.0,
-
-    		// Left face
-    		-1.0, -1.0, -1.0,	-1.0, -1.0,  1.0,
-    		-1.0,  1.0,  1.0,	-1.0,  1.0, -1.0,
-  	];
-
-  	// Now pass the list of positions into WebGL to build the
-  	// shape. We do this by creating a Float32Array from the
-  	// JavaScript array, then use it to fill the current buffer.
-
-  	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-
-
-	// Texture Coord Buffer
-  	const textureCoordBuffer = gl.createBuffer();
-  	gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
-
-  	const textureCoordinates = [
-    		0.0,  0.0,	1.0,  0.0,	1.0,  1.0,	0.0,  1.0,	// Front
-    		0.0,  0.0,	1.0,  0.0,	1.0,  1.0, 	0.0,  1.0,	// Back
-    		0.0,  0.0,	1.0,  0.0,	1.0,  1.0,	0.0,  1.0,	// Top
-    		0.0,  0.0,	1.0,  0.0,	1.0,  1.0,	0.0,  1.0,	// Bottom
-    		0.0,  0.0,	1.0,  0.0,	1.0,  1.0,	0.0,  1.0,	// Right
-    		0.0,  0.0,	1.0,  0.0,	1.0,  1.0,	0.0,  1.0,	// Left
-  	];
-
-  	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates),
-                	gl.STATIC_DRAW);
-
-	// Index Buffer
-  	const indexBuffer = gl.createBuffer();
-  	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-  	const indices = [
-    		0,  1,  2,      0,  2,  3,    // front
-    		4,  5,  6,      4,  6,  7,    // back
-    		8,  9,  10,     8,  10, 11,   // top
-    		12, 13, 14,     12, 14, 15,   // bottom
-    		16, 17, 18,     16, 18, 19,   // right
-    		20, 21, 22,     20, 22, 23,   // left
-  	];
-
-  	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
-      			new Uint16Array(indices), gl.STATIC_DRAW);
-
-  	return {
-		position: positionBuffer,
-		textureCoord: textureCoordBuffer,
-		indices: indexBuffer
-  	};
-}
-
-
-function isPowerOf2(value) {
-  	return (value & (value - 1)) == 0;
-}
-
-function drawGL() {
-	// Clear screen
-  	gl.clearColor(0.0, 0.0, 0.0, 1.0);
-  	gl.clearDepth(1.0);
-  	gl.enable(gl.DEPTH_TEST);
-  	gl.depthFunc(gl.LEQUAL);
-  	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-	// Perspective projection
-  	const fieldOfView = 45 * Math.PI / 180;   // in radians
-  	const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-  	const zNear = 0.1;
-  	const zFar = 100.0;
-  	const projectionMatrix = mat4.create();
-  	mat4.perspective(projectionMatrix,
-                   	fieldOfView,
-                   	aspect,
-                   	zNear,
-                   	zFar);
-
-	// NOTE: As the camera is at origin, this is essentially just a model matrix
-  	const modelViewMatrix = mat4.create();
-  	mat4.translate(modelViewMatrix,
-                 	modelViewMatrix,
-                 	[-0.0, 0.0, -6.0]);
-  	mat4.rotate(modelViewMatrix,
-              		modelViewMatrix,
-              		0,
-              		[0, 0, 1]);
-  	mat4.rotate(modelViewMatrix,
-              		modelViewMatrix,
-              		0,
-              		[0, 1, 0]);
-
-  	// Vertex attributes
-  	{
-    		const numComponents = 3;
-    		const type = gl.FLOAT;
-    		const normalize = false;
-    		const stride = 0;
-    		const offset = 0;
-    		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
-    		gl.vertexAttribPointer(
-        			programInfo.attribLocations.vertexPosition,
-        			numComponents,
-        			type,
-        			normalize,
-        			stride,
-        			offset);
-    		gl.enableVertexAttribArray(
-        			programInfo.attribLocations.vertexPosition);
-  	}
-
-  	// Tell WebGL how to pull out the texture coordinates from
-  	// the texture coordinate buffer into the textureCoord attribute.
-  	{
-    		const numComponents = 2;
-    		const type = gl.FLOAT;
-    		const normalize = false;
-    		const stride = 0;
-    		const offset = 0;
-    		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureCoord);
-    		gl.vertexAttribPointer(
-        			programInfo.attribLocations.textureCoord,
-        			numComponents,
-        			type,
-        			normalize,
-        			stride,
-        			offset);
-    		gl.enableVertexAttribArray(
-        			programInfo.attribLocations.textureCoord);
-  	}
-
-  	// Tell WebGL which indices to use to index the vertices
-  	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
-
-  	// Bind shader and set uniforms
-  	gl.useProgram(programInfo.program);
-  	gl.uniformMatrix4fv(
-      			programInfo.uniformLocations.projectionMatrix,
-      			false,
-      			projectionMatrix);
-  	gl.uniformMatrix4fv(
-      			programInfo.uniformLocations.modelViewMatrix,
-      			false,
-      			modelViewMatrix);
-
-  	// Bind texture (TEXTURE0)
-  	gl.activeTexture(gl.TEXTURE0);
-  	gl.bindTexture(gl.TEXTURE_2D, texture);
-  	gl.uniform1i(programInfo.uniformLocations.uSampler, 0); // Tell shader to use TEXTURE0
-
-  	{
-    		const vertexCount = 36;
-    		const type = gl.UNSIGNED_SHORT;
-    		const offset = 0;
-    		gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
-  	}
-
-}
-
-function initShaderProgram(gl, vsSource, fsSource) {
-	function loadShader(gl, type, source) {
+function initShaderProgram(vsSource, fsSource) {
+	function loadShader(type, source) {
   		const shader = gl.createShader(type);
 
   		gl.shaderSource(shader, source);
@@ -335,7 +68,8 @@ function initShaderProgram(gl, vsSource, fsSource) {
 
   		// Check for build errors
   		if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    			alert('Shader compilation error:' + gl.getShaderInfoLog(shader));
+    			console.log('Shader compilation error:' + gl.getShaderInfoLog(shader));
+			console.log(source);
     			gl.deleteShader(shader);
     			return null;
   		}
@@ -343,8 +77,10 @@ function initShaderProgram(gl, vsSource, fsSource) {
   		return shader;
 	}
 
-  	const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
-  	const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+	console.log('loading vertex shader');
+  	const vertexShader = loadShader(gl.VERTEX_SHADER, vsSource);
+	console.log('loading fragment shader');
+  	const fragmentShader = loadShader( gl.FRAGMENT_SHADER, fsSource);
 
   	// Create the shader program
   	const shaderProgram = gl.createProgram();
@@ -359,4 +95,75 @@ function initShaderProgram(gl, vsSource, fsSource) {
   	}
 
   	return shaderProgram;
+}
+
+function drawGL() {
+	// Clear screen
+  	gl.clearColor(0.1, 0.1, 0.1, 1.0);
+  	gl.clearDepth(1.0);
+  	gl.enable(gl.DEPTH_TEST);
+  	gl.depthFunc(gl.LEQUAL);
+  	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+	// Perspective projection
+  	const fieldOfView = 45 * Math.PI / 180;   // in radians
+  	const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+  	const zNear = 0.1;
+  	const zFar = 100.0;
+  	const projectionMatrix = mat4.create();
+  	mat4.ortho(projectionMatrix,
+		0, world_width, world_height, 0, 0.1, 100);
+
+  	// Vertex attributes
+  	{
+    		const numComponents = 2;
+    		const type = gl.FLOAT;
+    		const normalize = false;
+    		const stride = 0;
+    		const offset = 0;
+    		gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
+    		gl.vertexAttribPointer(
+        			programInfo.attribLocations.vertexPosition,
+        			numComponents,
+        			type,
+        			normalize,
+        			stride,
+        			offset);
+    		gl.enableVertexAttribArray(
+        			programInfo.attribLocations.vertexPosition);
+  	}
+
+   	const modelViewMatrix = mat4.create();
+  	mat4.translate(modelViewMatrix,
+                 	modelViewMatrix,
+                 	[-0.0, 0.0, -6.0]);
+  	mat4.rotate(modelViewMatrix,
+              		modelViewMatrix,
+              		0,
+              		[0, 0, 1]);
+  	mat4.rotate(modelViewMatrix,
+              		modelViewMatrix,
+              		0,
+              		[0, 1, 0]);
+
+ 	
+	let data = new Float32Array([
+    		// Front face
+    		-1.0, -1.0,  1.0,	1.0, -1.0,  1.0,
+     		1.0,  1.0,  1.0,	-1.0,  1.0,  1.0,
+	]);
+	gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
+	gl.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW);
+
+	gl.useProgram(programInfo.program);
+  	gl.uniformMatrix4fv(
+      			programInfo.uniformLocations.projectionMatrix,
+      			false,
+      			projectionMatrix);
+  	gl.uniformMatrix4fv(
+      			programInfo.uniformLocations.modelViewMatrix,
+      			false,
+      			modelViewMatrix);
+
+	gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
