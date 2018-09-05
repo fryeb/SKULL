@@ -31,7 +31,6 @@ function initializeGL() {
 
 		offset += 4;
 	}
-	console.log(indicies);
 	index_buffer = gl.createBuffer();
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index_buffer);
 	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indicies), gl.STATIC_DRAW);
@@ -51,7 +50,6 @@ function initializeGL() {
       			vTextureCoord = aTextureCoord;
     		}
   	`;
-	console.log(vsSource);
 
   	const fsSource = `
     		varying highp vec2 vTextureCoord;
@@ -88,8 +86,10 @@ function initShaderProgram(vsSource, fsSource) {
 
   		// Check for build errors
   		if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    			console.log('Shader compilation error:' + gl.getShaderInfoLog(shader));
-			console.log(source);
+    			console.error(
+				'Shader compilation error:'
+				 + gl.getShaderInfoLog(shader) + '\n'
+				 + source);
     			gl.deleteShader(shader);
     			return null;
   		}
@@ -97,9 +97,7 @@ function initShaderProgram(vsSource, fsSource) {
   		return shader;
 	}
 
-	console.log('loading vertex shader');
   	const vertexShader = loadShader(gl.VERTEX_SHADER, vsSource);
-	console.log('loading fragment shader');
   	const fragmentShader = loadShader( gl.FRAGMENT_SHADER, fsSource);
 
   	// Create the shader program
@@ -110,7 +108,9 @@ function initShaderProgram(vsSource, fsSource) {
 
   	// Check for link errors
   	if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-    		alert('Shader program linking error:' + gl.getProgramInfoLog(shaderProgram));
+    		console.error(
+			'Shader program linking error:'
+			 + gl.getProgramInfoLog(shaderProgram));
     		return null;
   	}
 
@@ -159,12 +159,20 @@ function drawGL() {
                  	[5.0, 5.0, -6.0]);
 
 	let positions = [];
-	
-	positions.push(
-		player.x, player.y, 
-		player.x, player.y + 1.0,
-		player.x + 1.0, player.y + 1.0,
-		player.x + 1.0, player.y);
+	let numSprites = 0;
+	function pushSprite(x, y) {
+		numSprites++;
+		positions.push(
+			x      , y, 
+			x      , y + 1.0,
+			x + 1.0, y + 1.0,
+			x + 1.0, y);
+	}
+	pushSprite(player.x, player.y);
+	enemies.forEach(enemy => {
+		pushSprite(enemy.x, enemy.y);
+	});
+	pushSprite(target.x, target.y);
  	
 	let data = new Float32Array(positions);
 	gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
@@ -181,5 +189,5 @@ function drawGL() {
       			modelViewMatrix);
 
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index_buffer);
-	gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
+	gl.drawElements(gl.TRIANGLES, numSprites * 6, gl.UNSIGNED_SHORT, 0);
 }
