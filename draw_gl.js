@@ -56,10 +56,12 @@ function initializeGL() {
     		uniform sampler2D uSampler;
 
     		void main(void) {
-			gl_FragColor = vec4(0.0, vTextureCoord.x, vTextureCoord.y, 1.0);
+			gl_FragColor = texture2D(uSampler, vTextureCoord);
+			// gl_FragColor = vec4(0.0, vTextureCoord.x, vTextureCoord.y, 1.0);
     		}
   	`;
 
+	texture = loadSymbol('&#x1f603;');
   	const shaderProgram = initShaderProgram(vsSource, fsSource);
   	programInfo = {
 		program: shaderProgram,
@@ -73,6 +75,59 @@ function initializeGL() {
       		  	  uSampler: gl.getUniformLocation(shaderProgram, 'uSampler'),
 		},
   	};
+}
+
+function loadSymbol(symbol) {
+  	const texture = gl.createTexture();
+  	gl.bindTexture(gl.TEXTURE_2D, texture);
+
+  	// Create temporary texture, while svg texture loads
+  	const level = 0;
+  	const internalFormat = gl.RGBA;
+  	const width = 1;
+  	const height = 1;
+  	const border = 0;
+  	const srcFormat = gl.RGBA;
+  	const srcType = gl.UNSIGNED_BYTE;
+  	const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
+  	gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                	width, height, border, srcFormat, srcType,
+                	pixel);
+
+  	const img = new Image();
+  	img.onload = function() {
+    		gl.bindTexture(gl.TEXTURE_2D, texture);
+    		gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                  		srcFormat, srcType, img);
+
+    		// WebGL1 has different requirements for power of 2 images
+    		// vs non power of 2 images so check if the image is a
+    		// power of 2 in both dimensions.
+		const isPowerOf2 = value => ((value & (value - 1)) == 0);
+    		if (isPowerOf2(img.width) && isPowerOf2(img.height)) {
+       			// Yes, it's a power of 2. Generate mips.
+       			gl.generateMipmap(gl.TEXTURE_2D);
+    		} else {
+       			// No, it's not a power of 2. Turn of mips and set
+       			// wrapping to clamp to edge
+       			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+       			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+       			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    		}
+  	};
+
+	let DOMURL = window.URL || window.webkitURL || window;
+	let data = '<svg xmlns="http://www.w3.org/2000/svg"' +
+		' width="200" height="200">' +
+           	'<foreignObject font-size="150" width="200" height="200">' +
+	   	symbol +
+           	' </foreignObject>' +
+           	'</svg>';
+	let svg = new Blob([data], {type: 'image/svg+xml'});
+	let url = DOMURL.createObjectURL(svg);
+	img.src = url;
+
+  	return texture;
 }
 
 function initShaderProgram(vsSource, fsSource) {
@@ -185,6 +240,11 @@ function drawGL() {
       			programInfo.uniformLocations.modelViewMatrix,
       			false,
       			modelViewMatrix);
+	
+	// Texture
+	gl.activeTexture(gl.TEXTURE0);
+	gl.bindTexture(gl.TEXTURE_2D, texture);
+	gl.uniform1i(programInfo.uniformLocations.uSampler, 0); // Tell shader to use texture 0
 
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index_buffer);
 	gl.drawElements(gl.TRIANGLES, numSprites * 6, gl.UNSIGNED_SHORT, 0);
