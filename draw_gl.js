@@ -41,17 +41,17 @@ function initializeGL() {
     		attribute vec2 aVertexPosition;
     		attribute vec2 aTextureCoord;
 
-    		uniform mat4 uModelViewMatrix;
-    		uniform mat4 uProjectionMatrix;
-
     		varying highp vec2 vTextureCoord;
 
     		void main(void) {
-			vec4 position = vec4(aVertexPosition.x, aVertexPosition.y, 0, 1);
-      			gl_Position = uProjectionMatrix * uModelViewMatrix * position;
+			vec4 position = vec4(0, 0, 0, 1);
+			position.x = aVertexPosition.x / ` + world_width/2 + `.0 - 1.0;
+			position.y = -aVertexPosition.y / ` + world_height/2 + `.0 + 1.0;
+      			gl_Position = position;
       			vTextureCoord = aTextureCoord;
     		}
   	`;
+	console.log(vsSource);
 
   	const fsSource = `
     		varying highp vec2 vTextureCoord;
@@ -157,12 +157,16 @@ function drawGL() {
   	mat4.translate(modelViewMatrix,
                  	modelViewMatrix,
                  	[5.0, 5.0, -6.0]);
+
+	let positions = [];
+	
+	positions.push(
+		player.x, player.y, 
+		player.x, player.y + 1.0,
+		player.x + 1.0, player.y + 1.0,
+		player.x + 1.0, player.y);
  	
-	let data = new Float32Array([
-    		// Front face
-    		-1.0, -1.0,	-1.0,  1.0,
-     		1.0,  1.0,  	 1.0,  -1.0,
-	]);
+	let data = new Float32Array(positions);
 	gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
 	gl.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW);
 
