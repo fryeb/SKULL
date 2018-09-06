@@ -8,6 +8,26 @@ let index_buffer = undefined;
 let texture = undefined;
 let programInfo = undefined;
 
+const player_uv = {
+	u0: 0.0, u1: 0.5,
+	v0: 0.0, v1: 0.5
+};
+
+const enemy_uv = {
+	u0: 0.5, u1: 1.0,
+	v0: 0.0, v1: 0.5
+};
+
+const target_uv = {
+	u0: 0.0, u1: 0.5,
+	v0: 0.5, v1: 1.0
+};
+
+const poop_uv = {
+	u0: 0.5, u1: 1.0,
+	v0: 0.5, v1: 1.0
+};
+
 function initializeGL() {
 	gl = WebGLDebugUtils.makeDebugContext(canvas.getContext('webgl'));
 
@@ -89,7 +109,7 @@ function loadSymbol(symbol) {
   	const border = 0;
   	const srcFormat = gl.RGBA;
   	const srcType = gl.UNSIGNED_BYTE;
-  	const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
+  	const pixel = new Uint8Array([255, 255, 255, 255]);  // opaque white
   	gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
                 	width, height, border, srcFormat, srcType,
                 	pixel);
@@ -117,12 +137,13 @@ function loadSymbol(symbol) {
   	};
 
 	let DOMURL = window.URL || window.webkitURL || window;
-	let data = '<svg xmlns="http://www.w3.org/2000/svg"' +
-		' width="200" height="200">' +
-           	'<foreignObject font-size="150" width="200" height="200">' +
-	   	symbol +
-           	' </foreignObject>' +
-           	'</svg>';
+	let data = `
+		<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+			<foreignObject font-size="33.3" width="100%" height="100%">
+				&#x1f603; &#x1f480;
+				&#x2b50; &#x1f4a9;
+			</foreignObject>
+		</svg>`;
 	let svg = new Blob([data], {type: 'image/svg+xml'});
 	let url = DOMURL.createObjectURL(svg);
 	img.src = url;
@@ -213,19 +234,19 @@ function drawGL() {
 
 	let positions = [];
 	let numSprites = 0;
-	function pushSprite(x, y) {
+	function pushSprite(x, y, uv) {
 		numSprites++;
 		positions.push(
-			x      , y      , 0, 0,
-			x      , y + 1.0, 0, 1,
-			x + 1.0, y + 1.0, 1, 1,
-			x + 1.0, y      , 1, 0);
+			x      , y      , uv.u0, uv.v0,
+			x      , y + 1.0, uv.u0, uv.v1,
+			x + 1.0, y + 1.0, uv.u1, uv.v1,
+			x + 1.0, y      , uv.u1, uv.v0);
 	}
-	pushSprite(player.x, player.y);
+	pushSprite(player.x, player.y, (game_state != 'Restart') ? player_uv : poop_uv);
 	enemies.forEach(enemy => {
-		pushSprite(enemy.x, enemy.y);
+		pushSprite(enemy.x, enemy.y, enemy_uv);
 	});
-	pushSprite(target.x, target.y);
+	pushSprite(target.x, target.y, target_uv);
  	
 	let data = new Float32Array(positions);
 	gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
