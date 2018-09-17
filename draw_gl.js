@@ -29,7 +29,9 @@ const poop_uv = {
 };
 
 function initializeGL() {
-	gl = WebGLDebugUtils.makeDebugContext(canvas.getContext('webgl'));
+	gl = WebGLDebugUtils.makeDebugContext(canvas.getContext('webgl', {
+		alpha : false
+	}));
 
 	// Generate VBO and VAO
 //	vertex_array = gl.createVertexArray();
@@ -136,17 +138,7 @@ function loadSymbol(symbol) {
     		}
   	};
 
-	let DOMURL = window.URL || window.webkitURL || window;
-	let data = `
-		<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
-			<foreignObject font-size="33.3" width="100%" height="100%">
-				&#x1f603; &#x1f480;
-				&#x2b50; &#x1f4a9;
-			</foreignObject>
-		</svg>`;
-	let svg = new Blob([data], {type: 'image/svg+xml'});
-	let url = DOMURL.createObjectURL(svg);
-	img.src = url;
+	img.src = './spritesheet.svg';
 
   	return texture;
 }
@@ -195,15 +187,13 @@ function drawGL() {
 	// Clear screen
   	gl.clearColor(0.1, 0.1, 0.1, 1.0);
   	gl.clearDepth(1.0);
-  	gl.enable(gl.DEPTH_TEST);
+	gl.enable(gl.DEPTH_TEST);
+	gl.enable(gl.BLEND);
   	gl.depthFunc(gl.LEQUAL);
-  	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-	// Perspective projection
-  	const fieldOfView = 45 * Math.PI / 180;   // in radians
-  	const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-  	const zNear = 0.1;
-  	const zFar = 100.0;
+	// Orthographic projection
   	const projectionMatrix = mat4.create();
   	mat4.ortho(projectionMatrix,
 		0, world_width, world_height, 0, 0.1, 100);
