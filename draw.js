@@ -1,5 +1,5 @@
-const world_width = 40;
-const world_height = 30;
+const WORLD_WIDTH = 40;
+const WORLD_HEIGHT = 30;
 let canvas = null;
 
 let useGL = false;
@@ -22,8 +22,8 @@ function initializeGraphics() {
 
 	// Scale the canvas
 	canvas.setAttribute('width', style_width * dpi);
-	tile_size = Math.round((style_width * dpi) / world_width);
-	canvas.setAttribute('height', world_height * tile_size);
+	tile_size = Math.round((style_width * dpi) / WORLD_WIDTH);
+	canvas.setAttribute('height', WORLD_HEIGHT * tile_size);
 
 	let renderer = document.querySelector('input[name="renderer"]:checked').value; 
 	console.log("Renderer: " + renderer);

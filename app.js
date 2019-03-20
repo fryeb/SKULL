@@ -117,8 +117,8 @@ function update(dt) {
 		if (key.down)
 			dy += dt;
 
-		player.x = clamp(dx * player_speed + player.x, 0, world_width - 1);
-		player.y = clamp(dy * player_speed + player.y, 0, world_height - 1);
+		player.x = clamp(dx * player_speed + player.x, 0, WORLD_WIDTH - 1);
+		player.y = clamp(dy * player_speed + player.y, 0, WORLD_HEIGHT - 1);
 	}
 
 
@@ -129,9 +129,9 @@ function update(dt) {
 		it.y += it.vy * dt;
 
 		// Detect Walls
-		if (world_width - it.x <= 2 || it.x <= 0)
+		if (WORLD_WIDTH - it.x <= 2 || it.x <= 0)
 			it.vx *= -1;
-		if (world_height - it.y <= 1 || it.y <= 0)
+		if (WORLD_HEIGHT - it.y <= 1 || it.y <= 0)
 			it.vy *= -1;
 
 		// Detect Player
