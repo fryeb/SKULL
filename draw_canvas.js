@@ -15,10 +15,10 @@ function initializeCanvas() {
 		let DOMURL = window.URL || window.webkitURL || window;
 		let data = '<svg xmlns="http://www.w3.org/2000/svg"' +
 			' width="20" height="20">' +
-           		'<foreignObject font-size="15" width="20" height="20"> ' +
-	   		code +
-           		' </foreignObject>' +
-           		'</svg>';
+			'<foreignObject font-size="15" width="20" height="20"> ' +
+			code +
+			' </foreignObject>' +
+			'</svg>';
 		let svg = new Blob([data], {type: 'image/svg+xml'});
 		let url = DOMURL.createObjectURL(svg);
 		img.src = url;
@@ -40,11 +40,11 @@ function initializeCanvas() {
 
 function drawSprite(sprite, x, y) {
 	ctx.drawImage(
-		sprite,
-		tile_size * x + 0.5 * sprite.width,
-		tile_size * y + 0.5 * sprite.height,
-		sprite.width,
-		sprite.height);
+			sprite,
+			tile_size * x + 0.5 * sprite.width,
+			tile_size * y + 0.5 * sprite.height,
+			sprite.width,
+			sprite.height);
 }
 
 function drawCanvas() {
@@ -57,9 +57,9 @@ function drawCanvas() {
 	let score_string = score.toString();
 	let score_width = ctx.measureText(score_string).width;
 	ctx.fillText(
-		score_string,
-		canvas.width/2 - score_width/2,
-		100);
+			score_string,
+			canvas.width/2 - score_width/2,
+			100);
 
 	// Player
 	let ps = (game_state != "Restart") ? player_sprite : poop_sprite;
@@ -69,9 +69,22 @@ function drawCanvas() {
 	drawSprite(target_sprite, target.x, target.y);
 
 	// Enemies
-	enemies.forEach(function(enemy) {
+	for (let enemy of enemies) {
 		drawSprite(enemy_sprite, enemy.x, enemy.y);
-	});
+	}
+
+	// Particles
+	for (let particle of particles) {
+		let scale = 0.75 * 1/(Math.max(1, particle.vy - 1.2*PARTICLE_SPEED));
+		let width = scale * target_sprite.width;
+		let height = scale * target_sprite.height;
+		ctx.drawImage(
+				target_sprite,
+				tile_size * particle.x + 0.5 * width,
+				tile_size * particle.y + 0.5 * height,
+				width,
+				height);
+	}
 
 	if (game_state != "Play") {
 		ctx.fillStyle = "#aaa";
@@ -82,10 +95,10 @@ function drawCanvas() {
 		let icon_width = icon.width * 5;
 		let icon_height = icon.height * 5;
 		ctx.drawImage(
-			icon,
-			canvas.width/2 - icon_width/2,
-			canvas.height/2 - icon_height/2,
-			icon_width,
-			icon_height);
+				icon,
+				canvas.width/2 - icon_width/2,
+				canvas.height/2 - icon_height/2,
+				icon_width,
+				icon_height);
 	}
 }

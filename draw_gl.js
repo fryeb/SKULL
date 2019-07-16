@@ -249,9 +249,14 @@ function drawGL() {
 	}
 
 	pushSprite(player.x, player.y, (game_state != 'Restart') ? player_uv : poop_uv);
-	enemies.forEach(enemy => {
+	for (let enemy of enemies) {
 		pushSprite(enemy.x, enemy.y, enemy_uv);
-	});
+	}
+
+	for (let particle of particles) {
+		let scale = 0.75 * 1/(Math.max(1, particle.vy - 1.2*PARTICLE_SPEED));
+		pushSprite(particle.x, particle.y, target_uv, scale);
+	}
 
 	pushSprite(target.x, target.y, target_uv);
 	if (game_state !== "Play") {

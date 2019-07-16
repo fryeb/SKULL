@@ -1,10 +1,14 @@
 // Constants
 const enemy_speed = 10;
 const player_speed = 20;
+const NUM_PARTICLES = 5;
+const PARTICLE_SPEED = 5;
+const PARTICLE_ACCELERATION = 10;
 
 // Globals
 var score = 0;
 var enemies, target, player;
+var particles;
 
 let game_state = "Launch";
 
@@ -86,6 +90,7 @@ function reset() {
 		x: 30,
 		y: 15
 	};
+	particles = [];
 }
 
 reset();
@@ -103,6 +108,13 @@ function update(dt) {
 		if (x < min)      return min;
 		else if (x > max) return max;
 		else              return x;
+	}
+
+	// Update Particles
+	for (let particle of particles) {
+		particle.x += particle.vx * dt;
+		particle.y += particle.vy * dt;
+		particle.vy += PARTICLE_ACCELERATION * dt;
 	}
 
 	{ // Update Player
@@ -123,7 +135,7 @@ function update(dt) {
 
 
 	// Update Enemies
-	enemies.forEach(function(it) {
+	for (let it of enemies) {
 		// Move
 		it.x += it.vx * dt;
 		it.y += it.vy * dt;
@@ -137,29 +149,44 @@ function update(dt) {
 		// Detect Player
 		if (did_hit(player, it))
 			game_state = "Restart";
-	});
+	};
 
 	// Target
 	if (did_hit(player, target)) {
 		// Increment Score
 		score += 1;
 
+		// Spawn Particles
+		for (let i = 0; i < NUM_PARTICLES; i++) {
+			let vx = 1 - 2*Math.random();
+			let vy = -Math.random();
+			let v = Math.sqrt(vx*vx + vy*vy);
+			let particle = {};
+			particle.x = target.x;
+			particle.y = target.y;
+			particle.vx = vx/v * PARTICLE_SPEED;
+			particle.vy = vy/v * PARTICLE_SPEED;
+			particles.push(particle);
+		}
+
 		// Move Target
 		target.x = Math.floor((Math.random() * 30) + 2.5);
 		target.y = Math.floor((Math.random() * 25) + 2.5);
 
 		// Spawn a new Enemy
-		var enemy = {};
-		enemy.x = Math.floor((Math.random() * 30) + 2.5);
-		enemy.y = Math.floor((Math.random() * 25) + 2.5);
-		// Velocity should have random direction, but constant magnitude
-		let vx = Math.random();
-		let vy = Math.random();
-		let v = Math.sqrt(vx*vx + vy*vy);
-		enemy.vx = vx/v * enemy_speed;
-		enemy.vy = vy/v * enemy_speed;
+		{
+			let enemy = {};
+			enemy.x = Math.floor((Math.random() * 30) + 2.5);
+			enemy.y = Math.floor((Math.random() * 25) + 2.5);
+			// Velocity should have random direction, but constant magnitude
+			let vx = 1 - 2*Math.random();
+			let vy = 1 - 2*Math.random();
+			let v = Math.sqrt(vx*vx + vy*vy);
+			enemy.vx = vx/v * enemy_speed;
+			enemy.vy = vy/v * enemy_speed;
 
-		enemies.push(enemy);
+			enemies.push(enemy);
+		}
 	}
 }
 
